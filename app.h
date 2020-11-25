@@ -43,6 +43,11 @@ char *DATA_TYPE[] = {"UINT8", "UINT32", "INT32",
         OFFSETOF(struct_name, fld_name), #nested_struct_name}     
 
 
+
+/*
+    NOTE:struct_db not reli doing anything but just pass to add_structure_to_struct_db
+    This macro merely just populate struct_db_rec_t *struct_rec memebers.
+*/
 #define REG_STRUCT(struct_db, usr_struc_name, fields_arr)                               \
     do{                                                                                 \
         struct_db_rec_t *struct_rec = calloc(1, sizeof(struct_db_rec_t));               \

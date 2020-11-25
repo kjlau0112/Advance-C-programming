@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "app.h"
 
+
 int add_structure_to_struct_db(struct_db_t *struct_db, 
                                struct_db_rec_t *struct_rec)
 {
@@ -15,6 +16,7 @@ int add_structure_to_struct_db(struct_db_t *struct_db,
 
     if(rec_head == NULL)
     {
+        //point the struct_db  to struct_rec
         struct_db->head = struct_rec;
         struct_db->count++;
 
@@ -28,7 +30,8 @@ int add_structure_to_struct_db(struct_db_t *struct_db,
     return 0;
 }
 
-void print_structure_rec(struct_db_rec_t *struct_rec){
+void print_structure_rec( struct _struct_db_rec_ *struct_rec)
+{
     if(!struct_rec) return;
     int j = 0;
     field_info_t *field = NULL;
@@ -47,16 +50,15 @@ void print_structure_rec(struct_db_rec_t *struct_rec){
 
 void print_structure_db(struct_db_t *struct_db){
     
-    if(struct_db != NULL) return;
-    
+    if(!struct_db) return;
     printf("printing STRUCURE DATABASE\n");
     int i = 0;
-    struct _struct_db_rec_ *struct_rec = NULL;
+    struct_db_rec_t *struct_rec = NULL;
     struct_rec = struct_db->head;
     printf("No of Structures Registered = %d\n", struct_db->count);
-    while(struct_rec)
-    {
+    while(struct_rec != NULL){
         printf("structure No : %d (%p)\n", i++, struct_rec);
+        //print_structure_rec(struct_db->head);
         print_structure_rec(struct_rec);
         struct_rec = struct_rec->next;
     }
@@ -64,7 +66,7 @@ void print_structure_db(struct_db_t *struct_db){
 
 int  main(int argc, char* argv[])
 {
-
+    int i =0;
     static field_info_t emp_fields[] = 
     {
         FIELD_INFO(emp_t, emp_name, CHAR,    0),
@@ -77,14 +79,10 @@ int  main(int argc, char* argv[])
 
     struct_db_t *struct_db = calloc(1, sizeof(struct_db_t));
 
-    if(struct_db->head == NULL)
-    {
-        printf("struct_db->head is NULL\n");
-    }
-
     REG_STRUCT(struct_db, emp_t, emp_fields);
-    
-    print_structure_db(struct_db);
+
+    printf("%s\n", struct_db->head->struct_name);
+
     return 0;
 }
 
