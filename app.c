@@ -11,24 +11,24 @@ int add_structure_to_struct_db(struct_db_t *struct_db,
     /*Note #struct_db is from  main() and 
     #struct_rec is create dynamically from REG_STRUCT */
     
-    struct_db_rec_t *head = struct_db->head;
+    struct_db_rec_t *rec_head = struct_db->head;
 
-    if(head == NULL)
+    if(rec_head == NULL)
     {
         struct_db->head = struct_rec;
-        struct_rec->next = NULL;
         struct_db->count++;
+
+        struct_rec->next = NULL;
         return 0;
     }
 
-    struct_rec->next = head;
+    struct_rec->next = rec_head;
     struct_db->head = struct_rec;
     struct_db->count++;
     return 0;
 }
 
 void print_structure_rec(struct_db_rec_t *struct_rec){
-     printf("print_structure_rec\n");
     if(!struct_rec) return;
     int j = 0;
     field_info_t *field = NULL;
@@ -47,12 +47,11 @@ void print_structure_rec(struct_db_rec_t *struct_rec){
 
 void print_structure_db(struct_db_t *struct_db){
     
-    printf("print_structure_db\n");
     if(struct_db != NULL) return;
     
     printf("printing STRUCURE DATABASE\n");
     int i = 0;
-    struct_db_rec_t *struct_rec = NULL;
+    struct _struct_db_rec_ *struct_rec = NULL;
     struct_rec = struct_db->head;
     printf("No of Structures Registered = %d\n", struct_db->count);
     while(struct_rec)
@@ -84,9 +83,8 @@ int  main(int argc, char* argv[])
     }
 
     REG_STRUCT(struct_db, emp_t, emp_fields);
-    print_structure_rec(struct_db->head);
-
-      //  print_structure_db(struct_db);
+    
+    print_structure_db(struct_db);
     return 0;
 }
 
