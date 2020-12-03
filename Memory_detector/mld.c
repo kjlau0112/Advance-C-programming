@@ -18,7 +18,6 @@ int add_structure_to_struct_db(struct_db_t *struct_db,
 
     if(rec_head == NULL) // same as if(struct_db->head == NULL)
     {
-        printf("add_structure_to_struct_db if case\n");
         //point the struct_db  to struct_rec
         //struct_rec contain fileds of information of structure
         
@@ -40,7 +39,10 @@ int add_structure_to_struct_db(struct_db_t *struct_db,
         }
         else
         {
+            //head always start with registered/added structure
             struct_db->head = rec_head;
+
+            //append newly added structure into next
             struct_db->head->next =struct_rec;
         }
 
@@ -90,7 +92,6 @@ void print_structure_db(struct_db_t *struct_db){
 
 void print_object_db(object_db_t *object_db)
 {
-    printf("print_object_db name is %s\n", object_db->head->struct_rec->struct_name);
     object_db_rec_t *head = object_db->head;
     unsigned int i = 0;
     printf(ANSI_COLOR_CYAN "Printing OBJECT DATABASE\n");
@@ -115,7 +116,11 @@ static object_db_rec_t *object_db_look_up(object_db_t *object_db, void *ptr)
     
     for(; head; head = head->next){
         if(head->ptr == ptr)
-            return head;
+        {
+            printf("not gonna happend\n");
+            return head;    
+        }
+
     }
     return NULL;
 }
@@ -127,8 +132,6 @@ static struct_db_rec_t *struct_db_look_up(struct_db_t *struct_db, char *struct_n
     
     for(; head; head = head->next)
     {
-        printf("struct_db_look_up:head->struct_name %s\n", head->struct_name);
-        printf("struct_db_look_up:struct_name %s\n", struct_name);
         if(strncmp(head->struct_name, struct_name, MAX_STRUCTURE_NAME_SIZE) ==0)
             return head;
     }
@@ -136,33 +139,40 @@ static struct_db_rec_t *struct_db_look_up(struct_db_t *struct_db, char *struct_n
 }
 
 /*Working with objects*/
-static void add_object_to_object_db(object_db_t *object_db, void *ptr, int units,struct_db_rec_t *struct_rec)
-{     
-    object_db_rec_t *obj_rec = object_db_look_up(object_db, ptr);
+/*#object_db is from main() line 45, #struct_rec was instanized but do nothing and passed from xcalloc()*/
+static void add_object_to_object_db(object_db_t *object_db, void *parameter_ptr, int units,struct_db_rec_t *parameter_struct_rec)
+{       
+    //object_db_rec_t *obj_rec = object_db_look_up(object_db, ptr);
     /*Dont add same object twice*/
-    assert(!obj_rec);
+    // assert(!obj_rec); 
+    // ignore these code, complex in nature and don't thing it can happended.
 
-    obj_rec = calloc(1, sizeof(object_db_rec_t));
+    object_db_rec_t *obj_rec = calloc(1, sizeof(object_db_rec_t));
 
     obj_rec->next = NULL;
-    obj_rec->ptr = ptr;
+    obj_rec->ptr = parameter_ptr; //parameter_ptr isdynamic object, it was from calloc
     obj_rec->units = units;
-    obj_rec->struct_rec = struct_rec;
+    obj_rec->struct_rec = parameter_struct_rec; //parameter_struct_rec is dynamic object, it was from calloc
    // obj_rec->is_visited = MLD_FALSE;
    // obj_rec->is_root = is_root;
 
     object_db_rec_t *head = object_db->head;
         
-    if(!head){
+    if(head == NULL)
+    {
         object_db->head = obj_rec;
         obj_rec->next = NULL;
         object_db->count++;
         return;
     }
-
-    obj_rec->next = head;
-    object_db->head = obj_rec;
-    object_db->count++;
+    else
+    {
+        //new structure add in , let move registered structureto the next
+        obj_rec->next = head;
+        // start the head with newly registered structure.
+        object_db->head = obj_rec;
+        object_db->count++;
+    }
 }
 
 void* xcalloc(object_db_t *object_db, char *struct_name, int units)
