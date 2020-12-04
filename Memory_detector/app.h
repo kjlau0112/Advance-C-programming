@@ -39,6 +39,11 @@
    {#fld_name, dtype, FIELD_SIZE(struct_name, fld_name),                \
         OFFSETOF(struct_name, fld_name), #nested_struct_name}     
 
+typedef enum{
+
+    MLD_FALSE,
+    MLD_TRUE
+} mld_boolean_t;
 
 typedef enum {
     UINT8,
@@ -122,8 +127,8 @@ struct _object_db_rec_{
     void *ptr;
     unsigned int units;
     struct_db_rec_t *struct_rec;
-  //  mld_boolean_t is_visited; /*Used for Graph traversal*/
-    //mld_boolean_t is_root;    /*Is this object is Root object*/
+    mld_boolean_t is_visited; /*Used for Graph traversal*/
+    mld_boolean_t is_root;    /*Is this object is Root object*/
 };
 
 typedef struct _object_db_{
@@ -145,3 +150,69 @@ void* xcalloc(object_db_t *object_db, char *struct_name, int units);
 int add_structure_to_struct_db(struct_db_t *struct_db, 
                                struct_db_rec_t *struct_rec,
                                int start_with_new_struct);
+
+void mld_set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr);
+
+void run_mld_algorithm(object_db_t *object_db);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//static function defined here to ease compilation.
+// This function will loop through number of dynamic object from main().
+static void init_mld_algorithm(object_db_t *object_db)
+{
+    object_db_rec_t *obj_rec = object_db->head;
+    while(obj_rec)
+    {
+        obj_rec->is_visited = MLD_FALSE;
+        obj_rec = obj_rec->next;
+    }
+
+}
+
+// mld_set_dynamic_object_as_root set the object as root object, as we can set more than one root object.
+// this function intended to loop thorught available object in object_db database tp identify the root object.
+// starting_from_here->next is assume user will placed on specific position of registered object data base link list.
+// if user not interested in start in beginning, set it to NULL,  
+// this function return the address ofthe root object. 
+static object_db_rec_t *get_next_root_object(object_db_t *object_db, object_db_rec_t *starting_from_here)
+{
+    object_db_rec_t *first = starting_from_here ? starting_from_here->next : object_db->head;
+   
+    if(first == starting_from_here)
+    {
+        printf("first == starting_from_here\n");
+    }
+    else
+    {
+        printf("first == object_db->head\n");
+    }
+
+    while(first)
+    {
+        printf("looping search for all other root object................\n");
+        if(first->is_root)
+        {
+            printf("first->is_root\n");
+            return first;
+
+        }
+
+        
+        first = first->next;
+    }
+    return NULL;
+}

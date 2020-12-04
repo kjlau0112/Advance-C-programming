@@ -51,6 +51,13 @@ int  main(int argc, char* argv[])
 
     student_t *abhishek = xcalloc(object_db, "student_t", 1);
     print_object_db(object_db);
+
+    emp_t *emp_rootobj = xcalloc(object_db, "emp_t", 2);
+    mld_set_dynamic_object_as_root(object_db, emp_rootobj);
+
+    print_object_db(object_db);
+
+    run_mld_algorithm(object_db);
     return 0;
 }
 

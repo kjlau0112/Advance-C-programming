@@ -104,8 +104,8 @@ void print_object_rec(object_db_rec_t *obj_rec, int i)
 {    
     if(!obj_rec) return;
     printf(ANSI_COLOR_MAGENTA "-----------------------------------------------------------------------------------------------------|\n"ANSI_COLOR_RESET);
-    printf(ANSI_COLOR_YELLOW "%-3d ptr = %-10p | next = %-10p | units = %-4d | struct_name = %-10s |\n"ANSI_COLOR_RESET, 
-        i, obj_rec->ptr, obj_rec->next, obj_rec->units, obj_rec->struct_rec->struct_name); 
+    printf(ANSI_COLOR_YELLOW "%-3d ptr = %-10p | next = %-10p | units = %-4d | struct_name = %-10s | is_root = %s\n"ANSI_COLOR_RESET, 
+        i, obj_rec->ptr, obj_rec->next, obj_rec->units, obj_rec->struct_rec->struct_name,obj_rec->is_root ? "TRUE " : "FALSE"); 
     printf(ANSI_COLOR_MAGENTA "-----------------------------------------------------------------------------------------------------|\n"ANSI_COLOR_RESET);
 }
 
@@ -140,7 +140,7 @@ static struct_db_rec_t *struct_db_look_up(struct_db_t *struct_db, char *struct_n
 
 /*Working with objects*/
 /*#object_db is from main() line 45, #struct_rec was instanized but do nothing and passed from xcalloc()*/
-static void add_object_to_object_db(object_db_t *object_db, void *parameter_ptr, int units,struct_db_rec_t *parameter_struct_rec)
+static void add_object_to_object_db(object_db_t *object_db, void *parameter_ptr, int units,struct_db_rec_t *parameter_struct_rec, mld_boolean_t is_root)
 {       
     //object_db_rec_t *obj_rec = object_db_look_up(object_db, ptr);
     /*Dont add same object twice*/
@@ -153,8 +153,8 @@ static void add_object_to_object_db(object_db_t *object_db, void *parameter_ptr,
     obj_rec->ptr = parameter_ptr; //parameter_ptr isdynamic object, it was from calloc
     obj_rec->units = units;
     obj_rec->struct_rec = parameter_struct_rec; //parameter_struct_rec is dynamic object, it was from calloc
-   // obj_rec->is_visited = MLD_FALSE;
-   // obj_rec->is_root = is_root;
+    obj_rec->is_visited = MLD_FALSE;
+    obj_rec->is_root = is_root;
 
     object_db_rec_t *head = object_db->head;
         
@@ -185,7 +185,7 @@ void* xcalloc(object_db_t *object_db, char *struct_name, int units)
     
     if(struct_rec != NULL)
     {
-        add_object_to_object_db(object_db, ptr, units, struct_rec);
+        add_object_to_object_db(object_db, ptr, units, struct_rec,MLD_FALSE);
     }
     else
     {
@@ -193,4 +193,60 @@ void* xcalloc(object_db_t *object_db, char *struct_name, int units)
     }
      /*xcalloc by default set the object as non-root*/
     return ptr;
+}
+
+/* Application might create an object using xcalloc , but at the same time the object
+* can be root object. Use this API to override the object flags for the object already
+* preent in object db*/
+void mld_set_dynamic_object_as_root(object_db_t *object_db, void *obj_ptr)
+{
+    object_db_rec_t *obj_rec = object_db_look_up(object_db, obj_ptr);
+    assert(obj_rec);
+    
+    obj_rec->is_root = MLD_TRUE;
+}
+
+void run_mld_algorithm(object_db_t *object_db)
+{
+    /*Step 1 : Mark all objects in object databse as unvisited*/
+    init_mld_algorithm(object_db);
+
+    /* Step 2 : Get the first root object from the object db, it could be 
+     * present anywhere in object db. If there are multiple roots in object db
+     * return the first one, we can start mld algorithm from any root object*/
+
+    object_db_rec_t *root_obj = get_next_root_object(object_db, NULL);
+
+    while(root_obj)
+    {        
+        if(root_obj->is_visited)
+        {
+            printf("root_obj->is_visited\n");
+            /* It means, all objects reachable from this root_obj has already been
+             * explored, no need to do it again, else you will end up in infinite loop.
+             * Remember, Application Data structures are cyclic graphs*/
+            root_obj = get_next_root_object(object_db, root_obj);
+            if(root_obj == NULL)
+            {
+                printf("root_obj is null\n");
+            }
+            // if no further root obeject is found, root_obj will be NULL, thus end it with continue to quit the while.
+            continue;
+        }
+        else
+        {
+            printf("run_mld_algorithm else\n");
+            /*root objects are always reachable since application holds the global
+            * variable to it*/ 
+            root_obj->is_visited = MLD_TRUE;
+        
+            /*Explore all reachable objects from this root_obj recursively*/
+            // mld_explore_objects_recursively(object_db, root_obj);
+
+            //root_obj = get_next_root_object(object_db, root_obj);
+        }
+        
+
+    } 
+
 }
